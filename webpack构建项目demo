@@ -1,0 +1,36 @@
+/* 采用 CommonJS 模块化 */
+需要的项目结构：
+- index.html  页面入口
+- main.js     执行入口
+- show.js     工具函数
+- webpack.config.js  构建配置
+
+index.html 
+  做两件事:
+  1. 存放页面的盒子
+    <div id="fanfan"></div>
+  2. 导入 webpack 构建的 js 文件
+    <script src="./dist/bundle.js"></script>
+ 
+main.js 
+    导入工具函数 -> 执行对应函数 -> 实现我们要做的事情
+    //通过 CommonJS 规范导入 show 函数(工具函数)
+    const show = require('./show.js');
+    show('content---要展示在页面上的内容--具体根据函数的不同实现而确定')
+  
+show.js
+    function show(content){
+      window.document.getElementById("fanfan").innerText = "这是我要展示的内容：" + content;
+    }
+    // 通过 CommonJS 规范导出 show 函数
+    module.exports = show;
+  
+webpack.config.js
+    const path = require('path');
+    module.exports = {
+      entry: './main.js',  //javascript执行入口文件
+      output: {
+        filename: 'bundle.js',
+        path: path.resolve(__dirname, './dist'),
+      }
+    }
