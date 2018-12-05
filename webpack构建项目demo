@@ -1,5 +1,5 @@
 /* 采用 CommonJS 模块化 */
-需要的项目结构：
+一、 需要的项目结构：
 - index.html  页面入口
 - main.js     执行入口
 - show.js     工具函数
@@ -34,3 +34,143 @@ webpack.config.js
         path: path.resolve(__dirname, './dist'),
       }
     }
+
+=====================================================================================================================================
+二、 Loader 的使用
+  安装新引入的 Loader 例如： npm i -D style-loader css-loader
+  
+  当你试图使用 css 时,你可能会去入口文件 main.js 中导入 css 模块（require(./main.css)），但是仅仅这样做 webpack 构建是会报错的，原因在于 Webpack 不原生支持解析 CSS 文件。
+  所以需要支持非 JavaScript 的文件时就需要使用 webpack 的 Loader 机制。
+  
+  修改 webpack 的配置 webpack.config.js 添加 module：
+  module: {
+    rules: [
+    {
+      //用正则表达式去匹配要用 Loader 转换的 CSS 文件
+      test: /\.css$/,
+      // use 的值是由 Loader 名称组成的数组，从后向前执行，先使用 css-loader 读取 css 文件，再由 style-loader 将 css 内容注入 JavaScript 里. 
+      // style-loader 的原理：将 CSS 的内容用 JavaScript 里的字符串存储起来,网页执行 js 时,通过 DOM 操作动态的向 HTML head 标签里插入 HTML style 标签
+      use: ['style-loader', 'css-loader?minimize']  
+      // ? 后面是传入的参数，告诉 css-loader 开启 css 压缩. 每个 Loader 都可以通过 URL querystring 的方式传入参数。
+    }
+    ]
+  }
+  
+------------------------------------------------------------------------------------------------------------------------------------------  
+  use 属性值也可以这样写：
+  use: {
+    'style-loader',
+    {
+      loader: 'css-loader',
+      options: {
+        minimize: true,
+      }
+    }
+  }
+  ------------------------------------------------------------------------------------------------------------------------------------
+  指定用什么 Loader 去处理什么文件这样写：
+  require('style-loader!css-loader?minimize!./main.css') // 指定对 ./main.css 这个文件先采用 css-loader 再采用 style-loader 进行转换。
+  
+  
+  =====================================================================================================================================
+  
+  三、 使用 Plugin ：扩展 Webpack 功能，通过在构建流程中注入钩子实现。
+    // style-loader 会导致 JavaScript 文件变大并且加载网页时间变长，那就需要考虑到可以单独输出 css 文件，这时就可以借助 Webpack Plugin机制。
+    通过 Plugin 将注入 bundle.js 文件里的 CSS 提取到单独的文件中：
+    webpack.config.js
+          const  path = require('path');
+          module.exports = {
+              entry: './main.js',
+              output: {
+                  filename: 'bundle.js',
+                  path: path.resolve(__dirname, './dist'),
+              },
+             module: {
+                rules: [
+                    {
+                    test: /\.css$/,
+                    loaders: ExtractTextPlugin.extract({
+                            use: ['css-loader'],
+                        }),
+                    }
+                ]
+            },
+            plugins: [
+                // plugins 属性是一个数组，里面的每一项都是插件的一个实例，在实例化一个组件时可以通过构造函数传入这个组件支持的配置属性。
+                new ExtractTextPlugin({
+                    // 通过插件的 filename 属性，告诉插件输出的 CSS 文件名称是通过这个字符串模板生成的。
+                    filename: `[name]_[md5:contenthash:hex:20].css`,
+                }),
+            ]
+          }
+      运行前需要安装引入的插件： npm i -D extract-text-webpack-plugin
+      安装成功后构建，如构建失败课尝试执行 npm install extract-text-webpack-plugin@next
+      构建成功后将 ./dist/.css 文件引入 index.html 即可
+      
+      注:
+      
+      1. 为何 extract-text-webpack-plugin 使用了 [md5:contenthash:hex:20] 而不是 [contenthash]？
+      因为 extract-text-webpack-plugin 即将弃用，bata 版目前只能在 Webpack 4.2.0 以下可用，这也导致了在最新版 webpack 中，假如使用 [contenthash] ，则会报错：
+      Error: Path variable [contenthash] not implemented in this context: css/[name].[contenthash].css
+      一种过渡方案就是使用 [md5:contenthash:hex:20]，
+      另外一种就是使用官方推荐的 mini-css-extract-plugin
+      
+      2. hash、chunkhash、contenthash区别：
+      
+      hash 一般是结合 CDN 缓存来使用，通过 webpack 构建之后，生成对应文件名自动带上对应的 MD5 值。
+      如果文件内容改变的话，那么对应文件哈希值也会改变，对应的 HTML 引用的 URL 地址也会改变，触发 CDN 服务器从源服务器上拉取对应数据，进而更新本地缓存。
+      但是在实际使用的时候，这几种 hash 计算还是有一定区别。
+      hash: 跟整个项目的构建相关，只要项目里有文件更改，整个项目构建的 hash 值都会更改，并且全部文件都共用相同的hash值
+      chunkhash: 
+        根据不同的入口文件( Entry )进行依赖文件解析、构建对应的 chunk ，生成对应的哈希值。
+        在生产环境里把一些公共库和程序入口文件区分开单独打包构建，接着采用 chunkhash 的方式生成哈希值，只要不改动公共库的代码，就可以保证其哈希值不会受影响。
+      contenthash: 保证即使 css 文件所处的模块里就算其他文件内容改变，只要 css 文件内容不变，那么不会重复构建。
+  
+  
+ ========================================================================================================================================
+ 
+ 四、 使用 DevServer
+  1. 提供 HTTP 服务而不是用本地文件预览
+  2. 监听文件的变化并自动刷新网页，做到实时预览
+  3. 支持 Source Map， 以方便调试
+  
+  2,3 webpack 原生支持 1可以用 DecServer 实现，安装： npm i -D webpack-dev-server
+  启动之后可以发现页面为空，这是因为 DevServer 不会理会 webpack.config.js 里配置的 output.path 属性，所以获取 bundle.js 的正确 URL 是 
+  http://localhost:8080/bundle.js ， 即 index.html 里引入 bundle.js 的路径应该为 <script src= "bundle.js"></script>
+  
+  实时预览：
+    webpack 启动时可以开启监听模式（默认关闭）： webpack --watch 
+    （通过 DevServer 启动的 webpack 会自动开启监听模式，发生变化是自动构建，然后通知 DevServer，DevServer 会让 Webpack 在构建出的 JavaScript 
+      代码里注入一个代理客户端用于控制网页， 网页和 DevServer 之间通过 WebSocket 协议通信， 以方便 DevServer 主动向客户端发送命令。DevServer 
+      在收到来自 Webpack 的文件变化通知时， 通过注入的客户端控制网页刷新）
+    只有 entry 本身和依赖的文件才会被 Webpack 添加到监听列表里
+  模块热更替：
+    不用重新刷新整个网页来实现实时预览。
+    启动 DevServer 时带上 --hot 参数， 重启 DevServer。
+  Source Map：
+    启动 DevServer 时带上 --devtool source-map 参数， 重启 DevServer。
+    
+    
+    ===================================================================================================================================
+    
+    总结：
+      Webpack 核心概念：
+        Entry：入口，Webpack 执行构建的第一步即输入
+        Module：模块，Webpack 从 Entry 里递归找出所有依赖的模块
+        Chunk：代码块，一个 Chunk 由多个模块组合而成，用于代码合并与分割。
+        Loader：模块转换器
+        Plugin：扩展插件
+        Output：输出结果
+      Webpack 启动：
+        ⑴ 从 Entry 里配置的 Module 开始，递归解析 Entry 依赖的所有 Module
+        ⑵ 针对每一个 Module 根据配置的 Loader 去找出对应的转换规则
+        ⑶ 对 Module 进行转换后，再解析出当前 Module 依赖的 Module
+        ⑷ 这些模块会以 Entry 为单位进行分组，一个 Entry 及其所有依赖的 Module 被分到一个组也就是一个 Chunk
+        ⑸ Webpack 将所有的 Chunk 转换成文件输出
+        在整个流程中，Webpack 会在恰当的时机执行 Plugin 里定义的逻辑。
+  
+  
+  
+  
+  
+  
