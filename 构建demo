@@ -1,0 +1,7 @@
+/* 采用 CommonJS 模块化 */
+需要的项目结构：
+*-- index.html
+*-- main.js
+*-- show.js
+*-- webpack.config.js
+
