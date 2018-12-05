@@ -10,9 +10,13 @@ npm i -D webpack@<version>
 npm i -D webpack@beta
 
 -----------------------------------------------------------------------------------------------------------------------------------------
-尝试webpack时Npm Script可以设置为优先使用本项目下的webpack
-``
+
+尝试webpack构建demo时Npm Script可以设置为：
+
+`
 "script" : {
   "start": "webpack --config webpack.config.js"
 }
-``
+`
+
+通过运行npm start构建出一个包含页面依赖模块以及内置的webpackBootstrap启动函数的可执行JavaScript文件
