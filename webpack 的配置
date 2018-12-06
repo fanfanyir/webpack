@@ -28,22 +28,77 @@
     （1）filename: 
         ● 一个输出文件，写成静态不变的 string --------filename:'bundle.js'
         ● 多个 Chunk 要输出，需要借助模板和变量-------filename:'[name].js'  [name] 代表用内置的 name 变量去替换，相当于一个字符串模板函数
-        ● 其他内置变量 ：
+       
+    （2）chunkFilename: 配置无入口的 Chunk 在输出时的文件名称(运行过程中生成的 Chunk)，
+                        常见场景： 使用 CommonChunkPlugin、使用 import() 动态加载等
+                       
+                       
+     内置变量 ：
             id: Chunk 的唯一标识，从0开始
             name: Chunk 的名称
             hash: Chunk 的唯一标识的 Hash 值
             chunkhash: Chunk 内容的 Hash 值
-    （2）chunkFilename: 内置变量和 filename 一致，但 chunkFilename 配置无入口的 Chunk 在输出时的文件名称(运行过程中生成的 Chunk)，
-                        常见场景： 使用 CommonChunkPlugin、使用 import() 动态加载等
-                        
     ------------------------------------------------------------------------------------------------------------------------------------
     
     （3）path: 配置输出文件存放在本地的目录，必须是 string 类型的绝对路径。通常通过 Node.js 的 path 模块去获取绝对路径：
               path: path.resolve(__dirname, 'dist_[hash]')
     （4）publicPath: 配置发布到线上资源的 URL 前缀，默认值是空字符串，即使用相对路径。
-    
+                    eg. 将构建出的资源文件上传到 CDN 服务器上，以利于加快页面的打开速度。
+                        filename:'[name]_[chunkhash:8].js' //报错的话可以去 webpack 构建项目 demo找到原因
+                        publicPath: 'https://cdn.example.com/assets/'
+                        这时发布到线上的 HTML 在引入 JavaScript 文件时就需要配置项：
+                        <script src='https://cdn.example.com/assets/a_8876545675.js'></script>
+                        
+    内置变量只有一个，hash--代表一次编译操作的 Hash 值。
     ------------------------------------------------------------------------------------------------------------------------------------
     
-    （5）crossOriginLoading
-    （6）libraryTarget 和 library
+    （5）crossOriginLoading： 用于配置异步插入的标签的 crossorigin 值，例如 JSONP 实现异步加载，动态的向 HTML 中插入 script 标签去加载异步资源。
+                    script 标签的 crossorigin 属性值：
+                        ● anonymous (默认)，加载此脚本资源时不会带上用户的 Cookies
+                        ● use-credentials，会带上用户的 Cookies
+    （6）libraryTarget 和 library: 构建一个可以被其他模块导入使用的库
+             ● library: 配置导出库的名称， eg. output.library = 'LibraryName'
+             ● libraryTarget: 配置以何种方式导出库
+                1> var(默认)：编写的库将通过 var 被赋值给通过 library 指定名称的变量
+                            // webpack 输出的代码
+                            var LibraryName = lb_code;  // lb_code 是指导出库的代码内容，是有返回值的一个自执行函数
+                            // 使用库的方法
+                            LibraryName.doSomething()
+                            如果 output.library 为空，则直接输出 lib_code
+                2> commonjs: 编写的库通过 CommonJs 规范导出
+                            // Webpack 输出的代码
+                            exports['LibraryName'] = lib_code
+                            // 使用库的方法
+                            require('library-name-in-npm')['LibraryName'].doSomething();
+                3> commonjs2  --不用配置 library
+                            // Webpack 输出的代码
+                            module.exports = lib_code
+                            // 使用库的方法
+                            require('library-name-in-npm').doSomething();
+                4> this： 编写的库将通过 this 被赋值给通过 library 指定的名称
+                            // Webpack 输出的代码
+                            this['LibraryName'] = lib_code
+                            // 使用库的方法
+                            this.LibraryName.doSomething();
+                5> window: 编写的库将通过 this 被赋值给通过 library 指定的名称
+                            // Webpack 输出的代码
+                            window['LibraryName'] = lib_code
+                            // 使用库的方法
+                            window.LibraryName.doSomething();
+                6> global: 编写的库将通过 global 被赋值给通过 library 指定的名称
+                            // Webpack 输出的代码
+                            global['LibraryName'] = lib_code
+                            // 使用库的方法
+                            global.LibraryName.doSomething();
+  
     （7）libraryExport
+        配置要导出的模块中哪些子模块需要被导出。 只有在 libraryTarget 为 commonjs 或者 commonjs2 时有效。
+        
+        要导出的模块源代码：
+            export const a = 1;
+            export defalut b = 2;
+         只导出a：
+            // Webpack 输出的代码
+            module.exports = lib_code['a']
+            // 使用库的方法
+            require('library-name-in-npm') === 1;
