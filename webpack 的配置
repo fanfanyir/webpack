@@ -33,9 +33,17 @@
             name: Chunk 的名称
             hash: Chunk 的唯一标识的 Hash 值
             chunkhash: Chunk 内容的 Hash 值
-    （2）chunkFilename: 配置无入口的 Chunk 在输出时的文件名称
-    （3）path
-    （4）publicPath
+    （2）chunkFilename: 内置变量和 filename 一致，但 chunkFilename 配置无入口的 Chunk 在输出时的文件名称(运行过程中生成的 Chunk)，
+                        常见场景： 使用 CommonChunkPlugin、使用 import() 动态加载等
+                        
+    ------------------------------------------------------------------------------------------------------------------------------------
+    
+    （3）path: 配置输出文件存放在本地的目录，必须是 string 类型的绝对路径。通常通过 Node.js 的 path 模块去获取绝对路径：
+              path: path.resolve(__dirname, 'dist_[hash]')
+    （4）publicPath: 配置发布到线上资源的 URL 前缀，默认值是空字符串，即使用相对路径。
+    
+    ------------------------------------------------------------------------------------------------------------------------------------
+    
     （5）crossOriginLoading
     （6）libraryTarget 和 library
     （7）libraryExport
