@@ -17,4 +17,25 @@
   
 二、 各个配置项设置
   1、Entry
-    
+    （1）类型：string, array(搭配 output.library 配置项使用时，只有数组里的最后一个入口文件的模块会被导出), object
+    （2）Chunk 的名称：与 Entry 的配置类型有关
+        string/array: 只会生成一个 Chunk, 名称是 main
+        object: 可能会出现多个 Chunk，名称是 object 键值对中键的名称
+    （3）配置动态 Entry：有多个页面需要为每一个页面的入口配置一个 Entry，但这些页面的数量可能会不断增长，这时 Entry 的配置会受到其他因素的影响，
+                        导致不能写成静态值。
+                        解决办法：将 Entry 设置成一个函数动态的返回上面所说的配置。
+  2、Output
+    （1）filename: 
+        ● 一个输出文件，写成静态不变的 string --------filename:'bundle.js'
+        ● 多个 Chunk 要输出，需要借助模板和变量-------filename:'[name].js'  [name] 代表用内置的 name 变量去替换，相当于一个字符串模板函数
+        ● 其他内置变量 ：
+            id: Chunk 的唯一标识，从0开始
+            name: Chunk 的名称
+            hash: Chunk 的唯一标识的 Hash 值
+            chunkhash: Chunk 内容的 Hash 值
+    （2）chunkFilename: 配置无入口的 Chunk 在输出时的文件名称
+    （3）path
+    （4）publicPath
+    （5）crossOriginLoading
+    （6）libraryTarget 和 library
+    （7）libraryExport
