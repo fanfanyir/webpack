@@ -105,9 +105,33 @@
             require('library-name-in-npm') === 1;
             
   3、Module
-    (1)
-    (2)
-    (3)
+    (1) 配置 Loader：rules 配置模块的读取和解析规则
+            ● 条件匹配(test, include, exclude): 选中文件,值可以是字符串，正则，数组类型(或 的关系)
+            ● 应用规则(use): 应用 Loader
+            ● 重置顺序(通过 enforce 改变 Loader 执行顺序到最前或者最后)
+    (2) noParse: 忽略对没采用模块的文件的递归解析和处理，文件不应该包含 import、require、define等模块化语句。
+            ● 类型：RegExp, [RsgExp], function
+            ● eg. // 正则 RegExp
+                  noParse: / jquery|chartjs /
+                  // function
+                  noParse: (content) => {
+                  // content 代表一个模块的文件路径
+                  // 返回 true/false
+                    return /jquery|chartjs/.test(content)
+                  }
+    (3) parser: 精确到语法层面，更细粒度的配置哪些模块语法被解析不被解析
+            module: {
+                rules: {
+                    test: /\.js$/,
+                    use: ['babel-loader'],
+                    parser: {
+                        amd: false.         //禁用 AMD
+                        commonjs: false,    //禁用 CommonJs
+                        harmony: false,     //禁用 ES6 import/export
+                        requireInclude: false,  //禁用 require.include
+                    }
+                }
+            }
   4、Resolve
     (1)
     (2)
