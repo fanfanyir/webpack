@@ -75,16 +75,19 @@
                             module.exports = lib_code
                             // 使用库的方法
                             require('library-name-in-npm').doSomething();
+                            
                 4> this： 编写的库将通过 this 被赋值给通过 library 指定的名称
                             // Webpack 输出的代码
                             this['LibraryName'] = lib_code
                             // 使用库的方法
                             this.LibraryName.doSomething();
+                            
                 5> window: 编写的库将通过 this 被赋值给通过 library 指定的名称
                             // Webpack 输出的代码
                             window['LibraryName'] = lib_code
                             // 使用库的方法
                             window.LibraryName.doSomething();
+                            
                 6> global: 编写的库将通过 global 被赋值给通过 library 指定的名称
                             // Webpack 输出的代码
                             global['LibraryName'] = lib_code
@@ -109,6 +112,7 @@
             ● 条件匹配(test, include, exclude): 选中文件,值可以是字符串，正则，数组类型(或 的关系)
             ● 应用规则(use): 应用 Loader
             ● 重置顺序(通过 enforce 改变 Loader 执行顺序到最前或者最后)
+            
     (2) noParse: 忽略对没采用模块的文件的递归解析和处理，文件不应该包含 import、require、define等模块化语句。
             ● 类型：RegExp, [RsgExp], function
             ● eg. // 正则 RegExp
@@ -119,6 +123,7 @@
                   // 返回 true/false
                     return /jquery|chartjs/.test(content)
                   }
+                  
     (3) parser: 精确到语法层面，更细粒度的配置哪些模块语法被解析不被解析
             module: {
                 rules: {
@@ -132,38 +137,204 @@
                     }
                 }
             }
-  4、Resolve
-    (1)
-    (2)
-    (3)
-    (4)
-    (5)
-    (6)
-    (7)
+            
+  4、Resolve： 根据模块化标准里约定的规则去寻找模块所对应的文件，可修改默认规则
+    (1) alias: 别名
+        resolve: {
+            alias: {
+                'react$': '/path/to/react.min.js',
+                // components: './src/components/'
+            }
+        }
+        
+    (2) mainFields: 有些第三方模块会针对不同的环境提供几份代码。webpack 会根据 mainFields 的配置去决定优先采用哪份代码。
+        mainFields: ['browser', 'main']  // webpack 会按照数组顺序在 package.json 文件里寻找，使用找到的第一个文件。
+        
+    (3) extensions: 导入语句没带文件后缀时，根据 extensions 设置的数组依次去尝试带上后缀去访问文件是否存在
+        extensions: ['.ts','.js','.json'] //优先使用 TypeScript
+        
+    (4) modules: 去哪些目录下寻找第三方模块
+        modules: ['./src/components','node_modules']
+        // 导入相对路径为 ../../../components/button 的文件
+        import 'button'
+        
+    (5) descriptionFiles: 描述第三方模块的文件名称，也就是 package.json
+        descriptionFiles: ['package.json']
+    ------------------------------------------------------------------------------------------------------------------------------------
+    (6) enforceExtension: true/false 导入语句是否带文件后缀 import './foo.js'  import './foo'  为 true 必须带
+    (7) enforceModuleExtension: 同上，但是只对 node_modules 下的模块生效。
+    
+        在 enforceExtension：true 时，因为安装的第三方模块中大多数导入语句都没有带文件后缀，
+        这时候就需要配置 enforceModuleExtension：false来兼容第三方模块。
+    ------------------------------------------------------------------------------------------------------------------------------------
   5、Plugin
-  6、DevServer
-    (1)
-    (2)
-    (3)
-    (4)
-    (5)
-    (6)
-    (7)
-    (8)
-    (9)
-    (10)
-    (11)
-    (12)
-    (13)
+        const CommonsChunkPlugin = require('webpack/lib/optimize/CommonsChunkPlugin');
+        module.exports = {
+            // plugins 配置项接受一个数组，其中每一项都是一个要使用的 Plugin 的实例，Plugin 需要的参数通过构造函数传入。
+            plugins: [
+                // 所有页面都会用到的公共代码被提取到 common 代码块中
+                new CommonsChunkPlugin({
+                    name: 'common',
+                    chunks: ['a', 'b']
+                })
+            ]
+        }
+  6、DevServer: 提高开发效率。只有通过 DevServer 启动 Webpack 时，配置文件里的 devServer 才会生效。
+    (1) hot: 不刷新整个页面的情况下通过用新模块代替老模块来做到实时预览。
+    (2) inline: 是否将代理客户端自动注入将运行在页面中的 Chunk 里，默认自动注入。
+        ● 开启 inline，DevServer 会在构建变化后的代码时通过代理客户端控制网页刷新。
+        ● 关闭 inline，DevServer 无法直接控制要开发的网页。它会通过 iframe 的方式运行要开发的网页。
+          构建完变化后的代码时，会通过刷新 iframe实现实时预览。需要去 http://localhost:8080/webpack-dev-server/ 实时预览网页。
+    (3) histroyApiFallback: 
+        ▲ histroyApiFallback: true, 任何请求都会返回 index.html 文件，只能用于只有一个 HTML 文件的应用
+        ▲ 如果应用有多个单页应用组成，需要 DevServer 根据不同的请求返回不同的 HTML 文件
+          histroyApiFallback： {
+            // 使用正则匹配命中路由
+                rewrites: [
+                    // /user 开头的都返回 user.html
+                    { from: // ^\/user/, to: '/user.html'},
+                    { from: // ^\/game/, to: '/game.html'},
+                    // 其他的都返回 index.html
+                    { from: /./, to: '/index.html'}
+                ]
+          }
+    (4) contentBase: DevServer HTTP 服务器的文件根目录，通常是项目根目录,只能用来配置暴露本地文件的规则。
+        devServer: {
+            contentBase: path.join(__dirname, 'root')  // 将项目根目录下的 root 设置成 DevServer 服务器的文件根目录
+            contentBase: false      // 关闭暴露本地文件
+        }
+        ★ DevServer 服务器通过 HTTP 服务暴露文件的方式：
+            1> 暴露本地文件
+            2> 暴露 Webpack 构建出的结果，由于构建出的结果交给了 DevServer，所以我们在使用 DevServer 时，会在本地找不到构建出的文件
+    (5)headers: 在 HTTP 响应中注入一些 HTTP 响应头
+       devServer: {
+            headers: {
+                'X-foo': 'bar'
+            }
+       }
+    (6) host: DevServer 服务监听的地址
+    (7) prot: DevServer 服务监听的端口
+    (8) allowedHosts: 白名单列表
+        allowedHosts: {
+            // 匹配单个域名
+            'host.com'
+            // host.com 和 所有子域名 *.host.com 都会被匹配 
+            '.host.com'
+        }
+    (9) disableHostCheck: 是否关闭 用于 DNS 重新绑定的 HTTP 请求的 HOST 检查
+            DevServer 默认值接收来自本地的请求，关闭后可以接收来自任意 HOST 的请求。
+            想让其他设备访问自己的本地服务，但是访问是直接通过 IP 地址而不是 HOST，所以需要关闭 HOST 检查
+    (10) https: HTTP2 和 Service Worker 必须运行在 HTTPS 上。
+            DevServer: {
+                https: true,   // 切换成 HTTPS 服务
+                // DevServer 会自动生成一份 HTTPS 证书，当然想用自己的证书也可以配置：
+                https: {
+                    key: fs.readFileSync('path/to/server.key')
+                    cert: fs.readFileSync('path/to/server.crt')
+                    ca: fs.readFileSync('path/to/ca.pem')
+                }
+            }
+    (11) clientLogLevel: 客户端日志等级，值有
+                         none、error、warning、info: 默认是 info，即输出所有类型的日志
+    (12) compress: 是否启用 Gzip 压缩，默认 false
+    (13) open：自动用系统默认浏览器打开网页，可以用 devServer.openPage 打开指定 URL 的网页。
   7、其他配置项
-    (1)
-    (2)
-    (3)
-    (4)
-    (5)
-  8、整体配置结构
-  9、多种配置类型
-    (1)
-    (2)
-    (3)
-  10、总结
+    (1) Target: 让 webpack 构建出针对不同运行环境的代码
+                web: 针对浏览器，所有的代码都集中在一个文件夹里
+                node: 针对 Node.js，使用 require 语句加载 Chunk 代码
+                async-node: 针对 Node.js, 异步加载 Chunk 代码
+                webworker: 针对 WebWorker
+                electron-main: 针对 Electron 主线程
+                electron-renderer: 针对 Electron 渲染线程
+    (2) Devtool: 默认值 false，即不生成 Source Map, 想生成以方便调试则配置如下
+            module.export = {
+                devtool: 'source-map'
+            }
+    (3) Watch 和 WatchOptions: 监听文件更新，重新编译
+            module.export = {
+                watch: true,    // 开启监听模式，默认是false
+                watchOptions: { // 开启监听模式时，watchOptions 才有意义 
+                    ignored: /node_module/, // 不监听的文件或文件夹，默认为空
+                    aggregateTimeout: 300,  // 监听到变化后，等 300ms 再去执行，防止文件更新太快导致重新编译频率太高，默认 300ms
+                    poll: 1000              // 默认每秒询问 1000次 系统指定文件有没有变化
+                }
+            }
+    (4) Externals: 告诉 webpack 要构建的代码中使用了哪些不用被打包的模块。外部环境提供的模块，打包时可以忽略。
+                   通过 externals 告诉 webpack 在 JavaScript 运行环境中已经内置了哪些全局变量，不要将这些全局变量打包到代码中而是直接使用
+           module.export = {
+                externals: {
+                // 将导入语句里的 jquery 替换成运行环境里的全局变量 jQuery
+                    jquery: 'jQuery'
+                }
+           }
+    (5) ResolveLoader: 告诉 webpack 如何去寻找 Loader
+           module.export = {
+                resolveLoader: {
+                    // 去哪个目录下寻找 Loader
+                    modules: ['node_modules'],
+                    // 入口文件的后缀
+                    extensions: ['.js','.json'],
+                    // 指明入口文件位置的字段
+                    mainFields: ['loader', 'main']
+                }
+           }
+  8、整体配置结构：每个配置项所处位置和数据结构，见整体配置结构 demo
+  9、多种配置类型：除了通过导出一个 Object 来描述 Webpack 所需的配置，还有其他更灵活的方式可以简化不同场景的配置。
+    (1) 导出一个 Function
+            用导出对象的方法时，如果有开发环境和生产环境则需要写两份配置文件，如果用 Function 的话就可以只写一个配置文件。
+            const path = require('path');
+            const UglifyJsPlugin = require('webpack/lib/optimize/UglifyJsPlugin');
+            // env----Object 
+            //启动命令：webpack --env.production --env.bao=foo  则 env 的值是{"production":"true","bar":"foo"}
+            // argv 代表在启动 Webpack 时通过命令行传入的所有参数  eg. --env、--config、--devtool
+            module.exports = function (env = {}, argv){
+                const plugins = [];
+                const isProduction = env['production'];
+                // 在生产环境中才压缩
+                if(isProduction){
+                    plugins.push(
+                        // 压缩输出的 JavaScript 代码
+                        new UglifyJsPlugin()
+                    )
+                }
+                return {
+                    plugins: plugins,
+                    devtool: isProduction ? undefined : 'source-map'
+                }
+            }
+    (2) 导出一个返回 Promise 的函数: 不能以同步的方式返回一个描述配置的 Object 时。
+            module.exports = function (env = {}, argv){
+                return new Promise((resolve, reject) => {
+                    setTimeout(() => {
+                        resolve({
+                            // ...
+                        })
+                    }, 5000)
+                })
+            }
+        
+    (3) 导出多份配置: 适用于 Webpack 构建一个要上传到 Npm 仓库的库，因为库中需要包含多种模块化格式的代码
+        // 支持导出一个数组，数组中可以包含每份配置，每份配置都会执行一边构建，以下代码会导致 webpack 针对这三分配置执行三次不同的构建
+        module.exports = [
+            // 采用 Object 描述的一份配置
+            {
+                // ...
+            },
+            // 采用函数描述的一份配置
+            function(){
+                return {
+                    // ...
+                }
+            },
+            // 采用异步函数描述的一份配置
+            function(){
+                return Promise();
+            }
+        ]
+  10、总结：根据经验去判断如何配置 Webpack
+  
+    ◆ 让源文件加入构建流程中被 webpack 控制：entry
+    ◆ 想自定义输出文件的位置和名称：output
+    ◆ 想自定义寻找依赖模块式的策略： resolve
+    ◆ 想自定义解析和转换稳健的策略： module,通常是配置 module.rules 里的 Loader
+    ◆ Plugin
