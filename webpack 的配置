@@ -24,6 +24,7 @@
     （3）配置动态 Entry：有多个页面需要为每一个页面的入口配置一个 Entry，但这些页面的数量可能会不断增长，这时 Entry 的配置会受到其他因素的影响，
                         导致不能写成静态值。
                         解决办法：将 Entry 设置成一个函数动态的返回上面所说的配置。
+                        
   2、Output
     （1）filename: 
         ● 一个输出文件，写成静态不变的 string --------filename:'bundle.js'
@@ -42,6 +43,7 @@
     
     （3）path: 配置输出文件存放在本地的目录，必须是 string 类型的绝对路径。通常通过 Node.js 的 path 模块去获取绝对路径：
               path: path.resolve(__dirname, 'dist_[hash]')
+              
     （4）publicPath: 配置发布到线上资源的 URL 前缀，默认值是空字符串，即使用相对路径。
                     eg. 将构建出的资源文件上传到 CDN 服务器上，以利于加快页面的打开速度。
                         filename:'[name]_[chunkhash:8].js' //报错的话可以去 webpack 构建项目 demo找到原因
@@ -56,6 +58,7 @@
                     script 标签的 crossorigin 属性值：
                         ● anonymous (默认)，加载此脚本资源时不会带上用户的 Cookies
                         ● use-credentials，会带上用户的 Cookies
+                        
     （6）libraryTarget 和 library: 构建一个可以被其他模块导入使用的库
              ● library: 配置导出库的名称， eg. output.library = 'LibraryName'
              ● libraryTarget: 配置以何种方式导出库
@@ -65,11 +68,13 @@
                             // 使用库的方法
                             LibraryName.doSomething()
                             如果 output.library 为空，则直接输出 lib_code
+                            
                 2> commonjs: 编写的库通过 CommonJs 规范导出
                             // Webpack 输出的代码
                             exports['LibraryName'] = lib_code
                             // 使用库的方法
                             require('library-name-in-npm')['LibraryName'].doSomething();
+                            
                 3> commonjs2  --不用配置 library
                             // Webpack 输出的代码
                             module.exports = lib_code
@@ -179,12 +184,15 @@
                 })
             ]
         }
+        
   6、DevServer: 提高开发效率。只有通过 DevServer 启动 Webpack 时，配置文件里的 devServer 才会生效。
     (1) hot: 不刷新整个页面的情况下通过用新模块代替老模块来做到实时预览。
+    
     (2) inline: 是否将代理客户端自动注入将运行在页面中的 Chunk 里，默认自动注入。
         ● 开启 inline，DevServer 会在构建变化后的代码时通过代理客户端控制网页刷新。
         ● 关闭 inline，DevServer 无法直接控制要开发的网页。它会通过 iframe 的方式运行要开发的网页。
           构建完变化后的代码时，会通过刷新 iframe实现实时预览。需要去 http://localhost:8080/webpack-dev-server/ 实时预览网页。
+          
     (3) histroyApiFallback: 
         ▲ histroyApiFallback: true, 任何请求都会返回 index.html 文件，只能用于只有一个 HTML 文件的应用
         ▲ 如果应用有多个单页应用组成，需要 DevServer 根据不同的请求返回不同的 HTML 文件
@@ -198,6 +206,7 @@
                     { from: /./, to: '/index.html'}
                 ]
           }
+          
     (4) contentBase: DevServer HTTP 服务器的文件根目录，通常是项目根目录,只能用来配置暴露本地文件的规则。
         devServer: {
             contentBase: path.join(__dirname, 'root')  // 将项目根目录下的 root 设置成 DevServer 服务器的文件根目录
@@ -206,14 +215,18 @@
         ★ DevServer 服务器通过 HTTP 服务暴露文件的方式：
             1> 暴露本地文件
             2> 暴露 Webpack 构建出的结果，由于构建出的结果交给了 DevServer，所以我们在使用 DevServer 时，会在本地找不到构建出的文件
+            
     (5)headers: 在 HTTP 响应中注入一些 HTTP 响应头
        devServer: {
             headers: {
                 'X-foo': 'bar'
             }
        }
+       
     (6) host: DevServer 服务监听的地址
+    
     (7) prot: DevServer 服务监听的端口
+    
     (8) allowedHosts: 白名单列表
         allowedHosts: {
             // 匹配单个域名
@@ -221,9 +234,11 @@
             // host.com 和 所有子域名 *.host.com 都会被匹配 
             '.host.com'
         }
+        
     (9) disableHostCheck: 是否关闭 用于 DNS 重新绑定的 HTTP 请求的 HOST 检查
             DevServer 默认值接收来自本地的请求，关闭后可以接收来自任意 HOST 的请求。
             想让其他设备访问自己的本地服务，但是访问是直接通过 IP 地址而不是 HOST，所以需要关闭 HOST 检查
+            
     (10) https: HTTP2 和 Service Worker 必须运行在 HTTPS 上。
             DevServer: {
                 https: true,   // 切换成 HTTPS 服务
@@ -234,10 +249,14 @@
                     ca: fs.readFileSync('path/to/ca.pem')
                 }
             }
+            
     (11) clientLogLevel: 客户端日志等级，值有
                          none、error、warning、info: 默认是 info，即输出所有类型的日志
+                         
     (12) compress: 是否启用 Gzip 压缩，默认 false
+    
     (13) open：自动用系统默认浏览器打开网页，可以用 devServer.openPage 打开指定 URL 的网页。
+    
   7、其他配置项
     (1) Target: 让 webpack 构建出针对不同运行环境的代码
                 web: 针对浏览器，所有的代码都集中在一个文件夹里
@@ -246,10 +265,12 @@
                 webworker: 针对 WebWorker
                 electron-main: 针对 Electron 主线程
                 electron-renderer: 针对 Electron 渲染线程
+                
     (2) Devtool: 默认值 false，即不生成 Source Map, 想生成以方便调试则配置如下
             module.export = {
                 devtool: 'source-map'
             }
+            
     (3) Watch 和 WatchOptions: 监听文件更新，重新编译
             module.export = {
                 watch: true,    // 开启监听模式，默认是false
@@ -259,6 +280,7 @@
                     poll: 1000              // 默认每秒询问 1000次 系统指定文件有没有变化
                 }
             }
+            
     (4) Externals: 告诉 webpack 要构建的代码中使用了哪些不用被打包的模块。外部环境提供的模块，打包时可以忽略。
                    通过 externals 告诉 webpack 在 JavaScript 运行环境中已经内置了哪些全局变量，不要将这些全局变量打包到代码中而是直接使用
            module.export = {
@@ -267,6 +289,7 @@
                     jquery: 'jQuery'
                 }
            }
+           
     (5) ResolveLoader: 告诉 webpack 如何去寻找 Loader
            module.export = {
                 resolveLoader: {
@@ -278,7 +301,9 @@
                     mainFields: ['loader', 'main']
                 }
            }
+           
   8、整体配置结构：每个配置项所处位置和数据结构，见整体配置结构 demo
+  
   9、多种配置类型：除了通过导出一个 Object 来描述 Webpack 所需的配置，还有其他更灵活的方式可以简化不同场景的配置。
     (1) 导出一个 Function
             用导出对象的方法时，如果有开发环境和生产环境则需要写两份配置文件，如果用 Function 的话就可以只写一个配置文件。
@@ -302,6 +327,7 @@
                     devtool: isProduction ? undefined : 'source-map'
                 }
             }
+            
     (2) 导出一个返回 Promise 的函数: 不能以同步的方式返回一个描述配置的 Object 时。
             module.exports = function (env = {}, argv){
                 return new Promise((resolve, reject) => {
@@ -331,6 +357,7 @@
                 return Promise();
             }
         ]
+        
   10、总结：根据经验去判断如何配置 Webpack
   
     ◆ 让源文件加入构建流程中被 webpack 控制：entry
