@@ -1,1 +1,33 @@
+1. 缩小文件的搜索范围
 
+2. 使用 DIIPlugin
+
+3. 使用 HappyPack
+
+4. 使用 ParalleUglifyPlugin
+
+5. 使用自动刷新
+
+6. 开启模块热更替
+
+7. 区分环境
+
+8. 压缩代码
+
+9. CDN 加速
+
+10. 使用 Tree Shaking
+
+11. 提取公共代码
+
+12. 分割代码以按需加载
+
+13. 使用 Prepack
+
+14. 开启 Scope Hoisting
+
+15. 输出分析
+
+16. 优化总结
+  (1) 侧重优化开发体验的文件:  webpack.config.js
+  (2) 侧重优化输出质量的文件:  webpack-dist.config.js
