@@ -3,6 +3,20 @@
     1> 将新的 ES6 语法 用 ES5 实现。 eg. class
     2> 为新的 API 注入 polyfill。 eg. fetch API
   ● Babel 可以完成上面两件事
+    ✪ Babel 配置文件 .babelrc
+      {
+        "plugins": [
+          [
+            "transform-runtime",
+            {
+              "polyfill": false
+            }
+          ]
+        ],
+        "presets": [
+          
+        ]
+      }
   ● 如何在 Webpack 中使用 Babel：根据功能，Babel做的事情是转换代码，所以应该通过 Loader 接入 Babel
     module.exports = {
       module: {
@@ -15,11 +29,14 @@
       },
       devtool: 'source-map'
     }
+    安装新引入的依赖
     npm i -D babel-core babel-loader
     npm i -D babel-preset-env
   
 2. 使用 TypeScript
-
+  ● 主要提供了类型检查系统和对 ES6 语法的支持
+  ●
+  ● 
 3. 使用 Flow 检查器
 
 4. 使用 SCSS 语言
