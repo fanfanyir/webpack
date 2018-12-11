@@ -61,15 +61,78 @@
       }
       
       npm install -g tyscript 安装编译到全局，通过 tsc hello.ts
-      
-  ● 要让 Webpack 支持 TypeScript，需要解决两个问题：
-    - 通过 Loader 将 TypeScript 转换成 JavaScript
-    - Webpck 在寻找模块对应的文件时需要尝试 ts 后缀
+   
+   ● 集成 Webpack
+      要让 Webpack 支持 TypeScript，需要解决两个问题：
+    1> 通过 Loader 将 TypeScript 转换成 JavaScript  // awesome-typescript-loader
+    2> Webpck 在寻找模块对应的文件时需要尝试 ts 后缀   //extensions
+    webpack 配置：
+    {
+    resolve: {
+      // 先尝试以 ts 为后缀的 TypeScript 源码文件
+      extensions: ['.ts','.js']
+    },
+    module: {
+      rules: [
+        {
+          test: /\.ts$/,
+          loader: 'awesome-typescript-loader'
+        }
+      ]
+    }
+    }
     
+    npm i -D typescript awesome-typescript-loader
 3. 使用 Flow 检查器
-
+    ● 静态类型检测器
+    Flow 使用效果：
+     // @flow       ---告诉 Flow 检查器这个文件需要被检查
+     //  静态类型检查
+     function square1(n: number): number {
+      return n * n;
+     }
+     square1('2');  // Error: square1 需要传入 number 作为参数
+     // 类型推断检查
+     function square2(n) {
+      return n * n; // Error: 传入的 string 类型不能做乘法运算
+     }
+     square2('2'); 
+     ● 如何运行
+      npm i -D flow-bin
+      "script": {
+        "flow": "flow"
+      }
+      npm run flow
+      
+      ★ 采用 Flow 静态类型语法的 JavaScript 无法直接在目前已有的 JS 引擎中运行，所以需要在构建时去掉这些静态类型语法，有两种方法：
+        babel-preset-flow: 速度快 
+        flow-remove-types: 与 Babel 集成，方便
+     ● 集成 Webpack
+     (1) 安装 npm i -D babel-preset-flow
+     (2)修改 .babelrc,加入 Flow Preset
+      "presets": [
+        ...[],
+        "flow"
+      ]
+     
 4. 使用 SCSS 语言
-
+  接入 Webpack：
+  module.exports = {
+    module: {
+      rules: [
+        {
+          // 增加对 SCSS 文件的支持
+          test: /\.scss/,
+          use: ['style-loader', 'css-loader', 'sass-loader'],   // 重新构建前要安装这些依赖，其中 sass-loader 依赖 node-sass
+        }
+      ]
+    }
+  }
+  Loader 具体处理流程：
+  ◆ 通过 sass-loader 将 SCSS 源码转换为 CSS 代码，再将 CSS 代码交给 css-loader 处理。
+  ◆ css-loader 会找出 CSS 代码中 @import 和 url() 这样的导入语句，告诉 Webpack 依赖这些资源。同时支持 CSS Modules，压缩 CSS 等功能。
+     处理完后再将结果交给 style-loader 处理。
+  ◆ style-loader 将 CSS 代码转换成字符串后注入 JavaScript 代码中，通过 JavaScript 向 DOM 增加样式。想将 CSS 代码提取到单独文件，使用 ExtractTextPlugin
 5. 使用 PostCSS
 
 6. 使用 React 框架
