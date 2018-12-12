@@ -8,6 +8,62 @@
         ●  提升性能流畅度      13-14
   
 1. 缩小文件的搜索范围
+  ● Loader: Loader 对文件的转换操作很耗时，让尽可能少的文件被 Loader 处理。
+    module.exports = {
+      module: {
+        rules: [
+        {
+          test: /\.js/,
+          // 缓存转换出的结果
+          use: ['babel-loader?cacheDirectory'],
+          include: path.resolve(__dirname, 'src')
+        }
+        ]
+      }
+    }
+  ● relove.modules: 
+   module.exports = {
+      resolve: {
+        // 使用绝对路径指明第三方模块存放的位置，以减少搜索步骤
+        // 其中， __dirname 表示当前工作目录，即项目根目录
+        modules: [path.resolve(__dirname, 'node_modules')]
+      }
+    }
+    
+  ● relove.mainFields：采用哪个字段作为入口文件的描述
+    ♥ mainFields 默认值和当前 target 配置有关系
+      -- target 为 web 或者 webworker 时，值是 ["brower", "module", "main"]
+      -- target 为其他值时，值是 ["module", "main"]
+    module.exports = {
+      resolve: {
+        //只采用 main 字段作为入口文件的描述字段，以减少搜索步骤
+        mainFields: ['main'],
+      }
+    }
+    
+  ● relove.alias：通过别名来将导入路径映射成一个新的导入路径
+    module.exports = {
+      resolve:{
+        // 使用 alias 将导入 react 的语句换成直接使用单独完整的 react.min.js 文件
+        // 减少耗时的递归解析操作，单独完整的 `react.min.js` 文件没有采用模块化
+        alias: {
+          'react': path.resolve(__dirname, './node_modules/react/dist/react.min.js')
+        }
+      }
+    }
+    
+  
+  ● relove.extensions： 尝试过程中用到的后缀列表
+    默认是 extensions: ['.js', '.json']
+    -- 写导入语句是尽可能带上后缀，避免寻找过程
+    -- 频率出现高的文件后缀优先放在最前面
+    --  后缀尝试列表尽可能小，项目中不可能存在的情况不要写
+    
+  ● module.noParse：让 Webpack 忽略对没采用模块化的文件的递归解析处理
+    module.expores = {
+      // 单独完整的 `react.min.js` 文件没有采用模块化，忽略对其的递归解析处理
+      noParse: [/react\.min\.js$/]
+    }
 
 2. 使用 DIIPlugin
 
